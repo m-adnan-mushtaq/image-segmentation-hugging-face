@@ -86,7 +86,7 @@ def _process_vehicle_image(
     vehicle_cutout = remove_background(input_path)
 
     logger.info("Extracting shadow from original image...")
-    shadow_mask = extract_shadow_mask(original_image)
+    shadow_mask = extract_shadow_mask(original_image, vehicle_cutout)
 
     logger.info(f"Loading background: {background_name}")
     bg_path = get_background_path(background_name, BACKGROUNDS_DIR)
