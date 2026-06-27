@@ -12,6 +12,8 @@ from config import (
     BACKGROUNDS_DIR,
     CORS_ORIGINS,
     DEFAULT_BACKGROUND,
+    MAX_UPLOAD_SIZE_BYTES,
+    MAX_UPLOAD_SIZE_MB,
     TEMP_DIR,
     VALID_BACKGROUNDS,
 )
@@ -60,6 +62,13 @@ async def _save_upload_file(upload_file: UploadFile) -> Path:
     temp_path = generate_temp_filepath(suffix)
 
     content = await upload_file.read()
+
+    if len(content) > MAX_UPLOAD_SIZE_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File size must not exceed {MAX_UPLOAD_SIZE_MB} MB",
+        )
+
     with open(temp_path, "wb") as f:
         f.write(content)
 

@@ -1,7 +1,11 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
 import { SAMPLE_CARS } from "../constants/backgrounds";
+import {
+  MAX_UPLOAD_SIZE_BYTES,
+  MAX_UPLOAD_SIZE_MB,
+} from "../constants/upload";
 
 interface CarSelectorProps {
   carPreview: string | null;
@@ -16,18 +20,29 @@ export function CarSelector({
   onSelectSample,
   onSelectFile,
 }: CarSelectorProps) {
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   const onDrop = useCallback(
     (files: File[]) => {
       const file = files[0];
-      if (file) onSelectFile(file);
+      if (file) {
+        setUploadError(null);
+        onSelectFile(file);
+      }
     },
     [onSelectFile],
   );
 
+  const onDropRejected = useCallback(() => {
+    setUploadError(`File must be ${MAX_UPLOAD_SIZE_MB} MB or smaller`);
+  }, []);
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    onDropRejected,
     accept: { "image/*": [".jpg", ".jpeg", ".png", ".webp"] },
     maxFiles: 1,
+    maxSize: MAX_UPLOAD_SIZE_BYTES,
     multiple: false,
   });
 
@@ -76,9 +91,11 @@ export function CarSelector({
       <div
         {...getRootProps()}
         className={`cursor-pointer rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors ${
-          isDragActive
-            ? "border-violet-500 bg-violet-100/60"
-            : "border-violet-200 bg-white/60 hover:border-violet-400 hover:bg-violet-50"
+          uploadError
+            ? "border-red-300 bg-red-50/60"
+            : isDragActive
+              ? "border-violet-500 bg-violet-100/60"
+              : "border-violet-200 bg-white/60 hover:border-violet-400 hover:bg-violet-50"
         }`}
       >
         <input {...getInputProps()} />
@@ -109,7 +126,12 @@ export function CarSelector({
         <p className="text-sm font-medium text-violet-800">
           {isDragActive ? "Drop your image here" : "Drag & drop or click to upload"}
         </p>
-        <p className="mt-1 text-xs text-violet-400">JPG, PNG or WEBP</p>
+        <p className="mt-1 text-xs text-violet-400">
+          JPG, PNG or WEBP · max {MAX_UPLOAD_SIZE_MB} MB
+        </p>
+        {uploadError && (
+          <p className="mt-2 text-xs font-medium text-red-500">{uploadError}</p>
+        )}
       </div>
     </section>
   );

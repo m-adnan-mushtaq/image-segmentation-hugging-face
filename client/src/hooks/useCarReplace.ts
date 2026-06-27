@@ -2,6 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { replaceBackground } from "../api/replaceBackground";
 import { LOADING_STEPS } from "../constants/backgrounds";
+import {
+  MAX_UPLOAD_SIZE_BYTES,
+  MAX_UPLOAD_SIZE_MB,
+} from "../constants/upload";
 import type { BackgroundId, ProcessStatus } from "../types";
 
 async function urlToFile(url: string, filename: string): Promise<File> {
@@ -50,6 +54,11 @@ export function useCarReplace() {
 
   const selectUploadedFile = useCallback(
     (file: File) => {
+      if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+        setError(`File must be ${MAX_UPLOAD_SIZE_MB} MB or smaller`);
+        return;
+      }
+
       setSelectedSampleId(null);
       setBackground(null);
       revokeResult();
